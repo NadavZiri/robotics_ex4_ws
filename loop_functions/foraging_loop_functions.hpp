@@ -31,7 +31,8 @@ namespace argos {
       virtual ~CForagingLoopFunctions() {}
 
       FoodItem& getFoodItem(uint32_t id);
-      const std::vector<CVector3>& getBases() const { return m_Bases; }
+      const std::vector<CVector3>& getBases1() const { return m_Bases1; }
+      const std::vector<CVector3>& getBases2() const { return m_Bases2; }
 
       void Init(TConfigurationNode& t_tree) override;
       void PreStep() override;
@@ -45,7 +46,8 @@ namespace argos {
       uint32_t m_uNumFoodItems;
 
       std::map<int, FoodItem> m_FoodItems; // map: CLEDEntity ID -> FoodItem
-      std::vector<CVector3> m_Bases;
+      std::vector<CVector3> m_Bases1; // team1 base positions
+      std::vector<CVector3> m_Bases2; // team2 base positions
 
       bool m_bLazyInitialized = false;
    };

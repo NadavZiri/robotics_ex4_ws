@@ -27,6 +27,7 @@ public:
     void SetCarriedFoodId(uint32_t foodId) { m_carriedFoodId = foodId; }
     void ClearCarriedFoodId() { m_carriedFoodId = std::nullopt; }
     void addBasePosition(const CVector3& basePos) { m_basePositions.push_back(basePos); } // for use by loop function
+    virtual uint8_t getTeamId() const = 0;
 
 protected:
     // Actuators and sensors

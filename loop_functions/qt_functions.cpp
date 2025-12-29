@@ -56,18 +56,32 @@ void CQTFunctions::Draw(CLEDEntity& c_entity) {
 }
 
 void CQTFunctions::DrawInWorld() {
-    // draw base positions
-    for (const CVector3& basePos : m_cForagingLF.getBases()) {
+    // draw team1 base positions
+    for (const CVector3& basePos : m_cForagingLF.getBases1()) {
         DrawCircle(
             CVector3(basePos.GetX(), basePos.GetY(), 0.001f), // slightly above ground
             CQuaternion(),
             m_cForagingLF.BASE_RADIUS,
-            CColor::PURPLE
+            CColor::BLUE
         );
         DrawText(
             basePos + CVector3(0.0f, 0.0f, 0.05f), // slightly above base
             "Base",
-            CColor::PURPLE
+            CColor::BLUE
+        );
+    }
+    // draw team2 base positions
+    for (const CVector3& basePos : m_cForagingLF.getBases2()) {
+        DrawCircle(
+            CVector3(basePos.GetX(), basePos.GetY(), 0.001f), // slightly above ground
+            CQuaternion(),
+            m_cForagingLF.BASE_RADIUS,
+            CColor::RED
+        );
+        DrawText(
+            basePos + CVector3(0.0f, 0.0f, 0.05f), // slightly above base
+            "Base",
+            CColor::RED
         );
     }
 }
