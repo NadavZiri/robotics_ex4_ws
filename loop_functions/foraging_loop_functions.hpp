@@ -4,7 +4,9 @@
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/plugins/simulator/media/led_medium.h>
 #include <argos3/plugins/simulator/entities/led_entity.h>
+#include <argos3/plugins/robots/pi-puck/simulator/pipuck_entity.h>
 #include <argos3/core/utility/math/rng.h>
+#include <foraging.hpp>
 
 #include <optional>
 
@@ -13,7 +15,6 @@ namespace argos {
    struct FoodItem {
          uint32_t food_id;
          std::optional<uint32_t> carrier_id; // empty if not carried
-         bool processed = false;
          CLEDEntity* ledEntity;
 
       FoodItem() : food_id(0), carrier_id(std::nullopt), ledEntity(nullptr) {};
@@ -30,9 +31,13 @@ namespace argos {
       virtual ~CForagingLoopFunctions() {}
 
       FoodItem& getFoodItem(uint32_t id);
+      const std::vector<CVector3>& getBases() const { return m_Bases; }
 
       void Init(TConfigurationNode& t_tree) override;
       void PreStep() override;
+
+      static constexpr Real PICKUP_RADIUS_SQRD = 0.05 * 0.05; // radius within which a pipuck can pick up food
+      static constexpr Real BASE_RADIUS = 0.1; // radius of base area
 
    private:
 
@@ -40,6 +45,8 @@ namespace argos {
       uint32_t m_uNumFoodItems;
 
       std::map<int, FoodItem> m_FoodItems; // map: CLEDEntity ID -> FoodItem
+      std::vector<CVector3> m_Bases;
 
+      bool m_bLazyInitialized = false;
    };
 }

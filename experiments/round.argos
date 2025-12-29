@@ -23,6 +23,7 @@
         <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="true" />
         <pipuck_rangefinders implementation="default" />
         <pipuck_system implementation="default" />
+        <positioning implementation="default" />
       </sensors>
       <params />
     </controller1>
@@ -35,6 +36,7 @@
         <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="true" />
         <pipuck_rangefinders implementation="default" />
         <pipuck_system implementation="default" />
+        <positioning implementation="default" />
       </sensors>
       <params />
     </controller2>
@@ -46,8 +48,10 @@
   <loop_functions library="build/lib/libforaging_loop_functions"
                   label="foraging_loop_functions">
     <params
-      num_food_items="1"
+      num_food_items="20"
       arena_size="4,4"
+      base1="-1.5,-1.5,0"
+      base2="1.5,1.5,0"
     />
   </loop_functions>
 

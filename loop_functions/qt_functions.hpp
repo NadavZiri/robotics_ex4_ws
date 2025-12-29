@@ -8,7 +8,7 @@
 #include "foraging_loop_functions.hpp"
 #include <foraging.hpp>
 
-using namespace argos;
+namespace argos {
 
 class CQTFunctions : public CQTOpenGLUserFunctions {
 
@@ -17,9 +17,9 @@ public:
    CQTFunctions();      
    virtual ~CQTFunctions() {}
 
-//    void Draw(CPiPuckEntity& c_entity);
+   void Draw(CPiPuckEntity& c_entity);
    void Draw(CLEDEntity& c_entity);
-//    virtual void DrawInWorld();
+   virtual void DrawInWorld();
 
    constexpr static Real FOOD_HEIGHT = 0.02f; // height of food for rendering
    constexpr static Real FOOD_RADIUS = 0.02f; // radius of food for rendering
@@ -27,3 +27,5 @@ public:
 private:
     CForagingLoopFunctions& m_cForagingLF;
 };
+
+} // namespace argos

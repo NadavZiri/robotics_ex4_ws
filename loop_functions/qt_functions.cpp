@@ -1,50 +1,41 @@
 #include "qt_functions.hpp"
 
-using namespace argos;
+namespace argos {
 
 /****************************************/
 /****************************************/
 
 CQTFunctions::CQTFunctions() :
     m_cForagingLF(dynamic_cast<CForagingLoopFunctions&>(CSimulator::GetInstance().GetLoopFunctions())) {
-        // RegisterUserFunction<CQTFunctions,CPiPuckEntity>(&CQTFunctions::Draw);
+        RegisterUserFunction<CQTFunctions,CPiPuckEntity>(&CQTFunctions::Draw);
         RegisterUserFunction<CQTFunctions,CLEDEntity>(&CQTFunctions::Draw);
 }
 
 /****************************************/
 /****************************************/
 
-// void CQTFunctions::Draw(CPiPuckEntity& c_entity) {
-//     ForagingController& controller = dynamic_cast<ForagingController&>(c_entity.GetControllableEntity().GetController());
+void CQTFunctions::Draw(CPiPuckEntity& c_entity) {
+    ForagingController& controller = dynamic_cast<ForagingController&>(c_entity.GetControllableEntity().GetController());
     
-//     // Draw() is invoked in world coordinates for composable entities; use the embodied origin.
-//     const CVector3& cRobotPos = c_entity.GetEmbodiedEntity().GetOriginAnchor().Position;
+    // Draw() is invoked in world coordinates for composable entities; use the embodied origin.
+    const CVector3& cRobotPos = c_entity.GetEmbodiedEntity().GetOriginAnchor().Position;
 
-//    if(controller.hasFood()) {
-//       FoodItem& pcFood = m_cForagingLF.GetFoodItem(controller.getCarriedFoodId());
-//       if(&pcFood) {
-//           // Render the carried food as a cylinder above the robot.
-//           // Processed/dropped food is yellow; otherwise black.
-//           DrawCylinder(
-//               cRobotPos + CVector3(0.0f, 0.0f, 0.1f), // position slightly above robot
-//               CQuaternion(),
-//               m_cForagingLF.GetFoodRadius(),
-//               FOOD_HEIGHT,
-//               pcFood.ledEntity->GetColor()
-//           );
-//       } else {
-//           THROW_ARGOSEXCEPTION("Robot " << fController.GetId() << " says it has food, but no food entity is mapped to it in loop functions.");
-//       }
-//    }
-
-//    // draw robot state text
-//    Task* currentTaskPtr = fController.getCurrentTask();
-//    if(currentTaskPtr == nullptr) {
-//        return;
-//    }
-//    std::string currentTaskName = fController.GetId() + "-" + currentTaskPtr->getName();
-//    DrawText(cRobotPos + CVector3(0.0f, 0.0f, 0.2f), currentTaskName);
-// }
+   if(controller.hasFood()) {
+      FoodItem& foodItem = m_cForagingLF.getFoodItem(controller.getCarriedFoodId());
+      if(&foodItem) {
+          // Render the carried food as a cylinder above the robot.
+          DrawCylinder(
+              cRobotPos + CVector3(0.0f, 0.0f, 0.1f), // position slightly above robot
+              CQuaternion(),
+              FOOD_RADIUS,
+              FOOD_HEIGHT,
+              CColor::GRAY80
+          );
+      } else {
+          THROW_ARGOSEXCEPTION("Robot " << controller.GetId() << " thinks it has food, but no food entity is mapped to it in loop functions.");
+      }
+   }
+}
 
 void CQTFunctions::Draw(CLEDEntity& c_entity) {
     FoodItem& cFoodItem = m_cForagingLF.getFoodItem(c_entity.GetIndex());
@@ -60,22 +51,30 @@ void CQTFunctions::Draw(CLEDEntity& c_entity) {
         CQuaternion(),
         FOOD_RADIUS,
         FOOD_HEIGHT,
-        cFoodItem.processed ? CColor::YELLOW : CColor::GRAY80
+        CColor::GRAY80
     );
 }
 
-// void CQTFunctions::DrawInWorld() {
-//     DrawText(
-//         CVector3(m_cForagingLF.getBase1().GetX(), m_cForagingLF.getBase1().GetY(), 0.3), // position
-//         "base1" //text
-//     );
-//     DrawText(
-//         CVector3(m_cForagingLF.getBase2().GetX(), m_cForagingLF.getBase2().GetY(), 0.3), // position
-//         "base2" // text
-//     );
-// }
+void CQTFunctions::DrawInWorld() {
+    // draw base positions
+    for (const CVector3& basePos : m_cForagingLF.getBases()) {
+        DrawCircle(
+            CVector3(basePos.GetX(), basePos.GetY(), 0.001f), // slightly above ground
+            CQuaternion(),
+            m_cForagingLF.BASE_RADIUS,
+            CColor::PURPLE
+        );
+        DrawText(
+            basePos + CVector3(0.0f, 0.0f, 0.05f), // slightly above base
+            "Base",
+            CColor::PURPLE
+        );
+    }
+}
 
 /****************************************/
 /****************************************/
 
 REGISTER_QTOPENGL_USER_FUNCTIONS(CQTFunctions, "qt_functions")
+
+} // namespace argos
