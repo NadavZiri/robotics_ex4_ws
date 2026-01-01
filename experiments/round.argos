@@ -20,7 +20,7 @@
         <pipuck_leds implementation="color" medium="leds" />
       </actuators>
       <sensors>
-        <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="true" />
+        <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="true"  check_occlusions="false" />
         <pipuck_rangefinders implementation="default" />
         <pipuck_system implementation="default" />
         <positioning implementation="default" />
@@ -33,7 +33,7 @@
         <pipuck_leds implementation="color" medium="leds" />
       </actuators>
       <sensors>
-        <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="true" />
+        <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="true" check_occlusions="false" />
         <pipuck_rangefinders implementation="default" />
         <pipuck_system implementation="default" />
         <positioning implementation="default" />

@@ -78,8 +78,10 @@ namespace argos {
 			if (pipuckController.hasFood()) {
 				uint32_t carriedFoodId = pipuckController.getCarriedFoodId();
 				FoodItem& foodItem = getFoodItem(carriedFoodId);
-				// update food item's position to match pipuck's position
-				foodItem.ledEntity->SetPosition(pipuckPosition);
+				// update food item's position to match pipuck's position (but above it)
+				CVector3 foodPosition = pipuckPosition;
+				foodPosition.SetZ(foodPosition.GetZ() + 0.1); // raise the food item slightly above the pipuck
+				foodItem.ledEntity->SetPosition(foodPosition);
 				foodItem.carrier_id = pipuckEntity->GetIndex();
 				// check if the pipuck is within a base area to drop off the food
 				const std::vector<CVector3>& m_Bases = (pipuckController.getTeamId() == 1) ? m_Bases1 : m_Bases2;
