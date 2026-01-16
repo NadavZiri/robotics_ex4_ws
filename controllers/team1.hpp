@@ -22,5 +22,18 @@ namespace argos {
          AVOID_OBSTACLE,
          AVOID_FRIENDLY
       };
+
+   private:
+      void RandomWalk();
+      void GoToBase();
+      void InterruptOpponent();
+      void AvoidObstacle();
+      void AvoidFriendly();
+
+      EState  m_eState;
+      CRadians m_cTargetAngle; // the angle we want to reach
+      bool m_bIsTurning;    // whether the robot is currently turning or moving forward
+      int m_nDriveTimer; // timer for driving forward
+      bool m_bIsHoldingFood; // whether the robot is holding food
    };
 }
