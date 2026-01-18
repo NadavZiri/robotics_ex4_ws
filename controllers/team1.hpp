@@ -35,5 +35,9 @@ namespace argos {
       bool m_bIsTurning;    // whether the robot is currently turning or moving forward
       int m_nDriveTimer; // timer for driving forward
       bool m_bIsHoldingFood; // whether the robot is holding food
+      Real k_p_follow = 1.0; // proportional gain for interrupting opponent
+      Real k_d_follow = 0.1; // derivative gain for interrupting opponent
+      Real max_speed = m_pcWheels->MAX_WHEEL_VELOCITY;
+      Real m_previous_error_follow = 0.0; // previous error for derivative control
    };
 }
