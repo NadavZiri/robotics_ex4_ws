@@ -78,7 +78,6 @@ namespace argos {
 				m_pcWheels->SetLinearVelocity(-5.0, 5.0);
 			} else {
 				m_bIsTurning = false;
-				/* שינוי כאן: טיימר דינמי רחב יותר (10 עד 110 צעדים) */
 				m_nDriveTimer = 10 + (rand() % 100);
 			}
 		} else {
