@@ -54,12 +54,15 @@ namespace argos {
 		}
 
 		if (pcClosestBlob != nullptr) {
-			if (pcClosestBlob->Angle.GetValue() > 0.1) {
+			m_bIsTurning = false; 
+			double fAngle = pcClosestBlob->Angle.GetValue();
+			
+			if (fAngle > 0.15) { 
 				m_pcWheels->SetLinearVelocity(2.0, 10.0);
-			} else if (pcClosestBlob->Angle.GetValue() < -0.1) {
+			} else if (fAngle < -0.15) { 
 				m_pcWheels->SetLinearVelocity(10.0, 2.0); 
-			} else {
-				m_pcWheels->SetLinearVelocity(10.0, 10.0); 
+			} else { 
+				m_pcWheels->SetLinearVelocity(15.0, 15.0); 
 			}
 			return; 
 		}
@@ -75,7 +78,8 @@ namespace argos {
 				m_pcWheels->SetLinearVelocity(-5.0, 5.0);
 			} else {
 				m_bIsTurning = false;
-				m_nDriveTimer = 20 + (rand() % 40);
+				/* שינוי כאן: טיימר דינמי רחב יותר (10 עד 110 צעדים) */
+				m_nDriveTimer = 10 + (rand() % 100);
 			}
 		} else {
 			if (m_nDriveTimer > 0) {
