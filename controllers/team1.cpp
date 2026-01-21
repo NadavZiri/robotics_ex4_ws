@@ -43,6 +43,7 @@ namespace argos {
 			return;
 		}
 
+		/* Search for food */
 		const CCI_ColoredBlobOmnidirectionalCameraSensor::SReadings& sReadings = m_pcCamera->GetReadings();
 		const CCI_ColoredBlobOmnidirectionalCameraSensor::SBlob* pcClosestBlob = nullptr;
 
@@ -53,40 +54,44 @@ namespace argos {
 			}
 		}
 
+		/* Target lock logic (if food is seen) */
 		if (pcClosestBlob != nullptr) {
 			m_bIsTurning = false; 
 			double fAngle = pcClosestBlob->Angle.GetValue();
-			
-			if (fAngle > 0.15) { 
-				m_pcWheels->SetLinearVelocity(2.0, 10.0);
-			} else if (fAngle < -0.15) { 
-				m_pcWheels->SetLinearVelocity(10.0, 2.0); 
-			} else { 
-				m_pcWheels->SetLinearVelocity(15.0, 15.0); 
-			}
+			if (fAngle > 0.15) m_pcWheels->SetLinearVelocity(0.02, 0.08);
+			else if (fAngle < -0.15) m_pcWheels->SetLinearVelocity(0.08, 0.02); 
+			else m_pcWheels->SetLinearVelocity(15, 15); 
 			return; 
 		}
 
 		CRadians cZ, cY, cX;
 		m_pcPositioning->GetReading().Orientation.ToEulerAngles(cZ, cY, cX);
-		cZ.UnsignedNormalize();
+		cZ.SignedNormalize();
 
 		if (m_bIsTurning) {
-			Real fAngleDiff = Abs((cZ - m_cTargetAngle).GetValue());
+			/* Calculate signed difference to choose turn direction */
+			Real fAngleDiff = (m_cTargetAngle - cZ).SignedNormalize().GetValue();
 
-			if (fAngleDiff > 0.05) {
-				m_pcWheels->SetLinearVelocity(-5.0, 5.0);
+			if (Abs(fAngleDiff) > 0.1) {
+				/* Smooth turning WHILE moving forward (Arc) */
+				if (fAngleDiff > 0) {
+					m_pcWheels->SetLinearVelocity(0.03, 0.09); 
+				} else {
+					m_pcWheels->SetLinearVelocity(0.09, 0.03); 
+				}
 			} else {
 				m_bIsTurning = false;
 				m_nDriveTimer = 10 + (rand() % 100);
 			}
 		} else {
 			if (m_nDriveTimer > 0) {
-				m_pcWheels->SetLinearVelocity(10.0, 10.0);
+				m_pcWheels->SetLinearVelocity(15, 15);
 				m_nDriveTimer--;
 			} else {
 				m_bIsTurning = true;
-				m_cTargetAngle.SetValue(static_cast<double>(rand()) / RAND_MAX * 2.0 * CRadians::PI.GetValue());
+				/* Pick new target angle and LOG IT */
+				m_cTargetAngle.SetValue(static_cast<double>(rand()) / RAND_MAX * 2.0 * CRadians::PI.GetValue() - CRadians::PI.GetValue());
+				LOG << "[" << GetId() << "] Changing direction while driving!" << std::endl;
 			}
 		}
 	}
