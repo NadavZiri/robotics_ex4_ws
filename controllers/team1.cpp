@@ -98,6 +98,7 @@ namespace argos {
 			LOG << "Food dropped at base!" << std::endl;
 			m_eState = RANDOM_WALK;
 			m_bIsTurning = true;
+			m_cTargetAngle.SetValue(static_cast<double>(rand()) / RAND_MAX * 2.0 * CRadians::PI.GetValue());
 			return;
 		}
 
@@ -108,26 +109,27 @@ namespace argos {
 		cZ.UnsignedNormalize();
 
 		Real fAngleToBase = atan2(cTargetBase.GetY() - cPos.GetY(), 
-								cTargetBase.GetX() - cPos.GetX());
+									cTargetBase.GetX() - cPos.GetX());
 		CRadians cTargetAngle(fAngleToBase);
 		cTargetAngle.UnsignedNormalize();
 
 		Real fDistance = (cTargetBase - cPos).Length();
+		Real fAngleDiff = (cTargetAngle - cZ).SignedNormalize().GetValue();
 
-		if (fDistance > 0.15) { 
-			Real fAngleDiff = (cTargetAngle - cZ).SignedNormalize().GetValue();
-
-			if (Abs(fAngleDiff) > 0.2) {
-				if (fAngleDiff > 0) m_pcWheels->SetLinearVelocity(-5.0, 5.0);
-				else m_pcWheels->SetLinearVelocity(5.0, -5.0);
+		
+		if (Abs(fAngleDiff) > 0.4) { 
+			if (fAngleDiff > 0) m_pcWheels->SetLinearVelocity(-8.0, 8.0);
+			else m_pcWheels->SetLinearVelocity(8.0, -8.0);
+		} 
+		else {
+			if (fDistance > 0.05) { 
+				m_pcWheels->SetLinearVelocity(15.0, 15.0); 
 			} else {
-				m_pcWheels->SetLinearVelocity(10.0, 10.0);
+				m_pcWheels->SetLinearVelocity(4.0, 4.0);
 			}
-		} else {
-			m_pcWheels->SetLinearVelocity(0.0, 0.0);
-			LOG << "At base" << std::endl;
 		}
 	}
+
 	void Controller1::InterruptOpponent() {}
 	void Controller1::AvoidObstacle() {}
 	void Controller1::AvoidFriendly() {}
