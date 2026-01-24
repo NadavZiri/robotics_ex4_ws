@@ -18,6 +18,7 @@ namespace argos {
       {
          RANDOM_WALK,
          GO_TO_BASE,
+         COLLECT_FOOD,
          INTERRUPT_OPPONENT,
          AVOID_OBSTACLE,
          AVOID_FRIENDLY
@@ -26,9 +27,11 @@ namespace argos {
    private:
       void RandomWalk();
       void GoToBase();
+      void CollectFood();
       void InterruptOpponent();
       void AvoidObstacle();
       void AvoidFriendly();
+      Real getSensorProximity(UInt8 sensorLabel);
 
       EState  m_eState;
       CRadians m_cTargetAngle; // the angle we want to reach
@@ -39,5 +42,8 @@ namespace argos {
       Real k_d_follow = 0.1; // derivative gain for interrupting opponent
       Real max_speed = m_pcWheels->MAX_WHEEL_VELOCITY;
       Real m_previous_error_follow = 0.0; // previous error for derivative control
+      Real m_previous_error_collect = 0.0; // previous error for derivative control in CollectFood
+      Real m_previous_distance_to_food = 0.0; // previous distance to food for derivative control in InterruptOpponent
+      Real m_time_interrupt_start = 0.0; // time when interrupting opponent started
    };
 }
