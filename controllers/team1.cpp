@@ -13,6 +13,7 @@ namespace argos
 		m_eState = RANDOM_WALK;
 		m_bIsTurning = false;
 		m_nDriveTimer = 50;
+		m_pcRNG = CRandom::CreateRNG("argos");
 		srand(m_pcSystem->GetTime() + GetId().at(6));
 		ClearCarriedFoodId();
 		/* Your Init code goes here */
@@ -38,7 +39,8 @@ namespace argos
 			AvoidObstacle();
 			break;
 		case AVOID_FRIENDLY:
-			AvoidFriendly();
+			// AvoidFriendly();
+			AvoidObstacle();
 			break;
 		}
 		/* Your ControlStep code goes here*/
@@ -51,11 +53,29 @@ namespace argos
 			m_eState = GO_TO_BASE;
 			return;
 		}
+		if (getSensorProximity(0) < 0.1 || getSensorProximity(7) < 0.1)
+		{
+			LOG << "Obstacle detected, switching to AVOID_OBSTACLE state." << std::endl;
+			m_eState = AVOID_OBSTACLE;
+			return;
+		}
 		/* Search for food */
 		const CCI_ColoredBlobOmnidirectionalCameraSensor::SReadings &sReadings = m_pcCamera->GetReadings();
 		const CCI_ColoredBlobOmnidirectionalCameraSensor::SBlob *pcClosestBlob = nullptr;
 		const CCI_ColoredBlobOmnidirectionalCameraSensor::SBlob *pcBlueBlob = nullptr;
 		LOG << "Robot number: " << GetId() << "\n" << "Sensor 0: " << getSensorProximity(0) << ", Sensor 7: " << getSensorProximity(7) << std::endl;
+		for (size_t i = 0; i < sReadings.BlobList.size(); ++i)
+		{
+			auto* blob = sReadings.BlobList[i];
+			if (blob->Color == CColor::BLUE && blob->Distance < 0.1 && Abs(blob->Angle.SignedNormalize().GetValue()) < CRadians::PI_OVER_FOUR.GetValue())
+			{
+				LOG << "Friendly detected during random walk, switching to AVOID_FRIENDLY state." << std::endl;
+				m_eState = AVOID_FRIENDLY;
+				return;
+			}
+			
+			
+		}
 		for (size_t i = 0; i < sReadings.BlobList.size(); ++i)
 		{
 			if (sReadings.BlobList[i]->Color == CColor::GRAY80)
@@ -75,62 +95,79 @@ namespace argos
 				return;
 			}
 		}
-
-		/* Target lock logic (if food is seen) */
-		if (pcClosestBlob != nullptr)
-		{
-			m_bIsTurning = false;
-			double fAngle = pcClosestBlob->Angle.GetValue();
-			if (fAngle > 0.15)
-				m_pcWheels->SetLinearVelocity(0.02, 0.08);
-			else if (fAngle < -0.15)
-				m_pcWheels->SetLinearVelocity(0.08, 0.02);
-			else
-				m_pcWheels->SetLinearVelocity(15, 15);
-			return;
-		}
-
 		CRadians cZ, cY, cX;
 		m_pcPositioning->GetReading().Orientation.ToEulerAngles(cZ, cY, cX);
 		cZ.SignedNormalize();
-
-		if (m_bIsTurning)
-		{
-			/* Calculate signed difference to choose turn direction */
-			Real fAngleDiff = (m_cTargetAngle - cZ).SignedNormalize().GetValue();
-
-			if (Abs(fAngleDiff) > 0.1)
-			{
-				/* Smooth turning WHILE moving forward (Arc) */
-				if (fAngleDiff > 0)
-				{
-					m_pcWheels->SetLinearVelocity(0.03, 0.09);
-				}
-				else
-				{
-					m_pcWheels->SetLinearVelocity(0.09, 0.03);
-				}
-			}
-			else
-			{
-				m_bIsTurning = false;
-				m_nDriveTimer = 10 + (rand() % 100);
-			}
+		nRandomInt = m_pcRNG->Uniform(CRange<UInt32>(0, 7));
+		if (m_pcSystem->GetTime() - turn_start_time > turn_duration) {
+			turn_start_time = m_pcSystem->GetTime();
+			nRandomInt = m_pcRNG->Uniform(CRange<UInt32>(0, 7));
+			turn_duration = m_pcRNG->Uniform(CRange<Real>(5.0, 15.0));
 		}
-		else
+		switch (nRandomInt)
 		{
-			if (m_nDriveTimer > 0)
-			{
-				m_pcWheels->SetLinearVelocity(15, 15);
-				m_nDriveTimer--;
-			}
-			else
-			{
-				m_bIsTurning = true;
-				/* Pick new target angle and LOG IT */
-				m_cTargetAngle.SetValue(static_cast<double>(rand()) / RAND_MAX * 2.0 * CRadians::PI.GetValue() - CRadians::PI.GetValue());
-			}
+		case 0:
+			m_pcWheels->SetLinearVelocity(max_speed, max_speed);
+			break;
+		case 1:
+			m_pcWheels->SetLinearVelocity(0.5 * max_speed, max_speed);
+			break;
+		case 2:
+			m_pcWheels->SetLinearVelocity(max_speed, 0.5 * max_speed);
+			break;
+		case 3:
+			m_pcWheels->SetLinearVelocity(0.8 * max_speed, max_speed);
+			break;
+		case 4:
+			m_pcWheels->SetLinearVelocity(max_speed, 0.8 * max_speed);
+			break;
+		case 5:
+			m_pcWheels->SetLinearVelocity(0.7 * max_speed, max_speed);
+			break;
+		case 6:
+			m_pcWheels->SetLinearVelocity(max_speed, 0.7 * max_speed);
+			break;
+		default:
+			break;
 		}
+
+		// if (m_bIsTurning)
+		// {
+		// 	/* Calculate signed difference to choose turn direction */
+		// 	Real fAngleDiff = (m_cTargetAngle - cZ).SignedNormalize().GetValue();
+
+		// 	if (Abs(fAngleDiff) > 0.1)
+		// 	{
+		// 		/* Smooth turning WHILE moving forward (Arc) */
+		// 		if (fAngleDiff > 0)
+		// 		{
+		// 			m_pcWheels->SetLinearVelocity(0.03, 0.09);
+		// 		}
+		// 		else
+		// 		{
+		// 			m_pcWheels->SetLinearVelocity(0.09, 0.03);
+		// 		}
+		// 	}
+		// 	else
+		// 	{
+		// 		m_bIsTurning = false;
+		// 		m_nDriveTimer = 10 + (rand() % 100);
+		// 	}
+		// }
+		// else
+		// {
+		// 	if (m_nDriveTimer > 0)
+		// 	{
+		// 		m_pcWheels->SetLinearVelocity(15, 15);
+		// 		m_nDriveTimer--;
+		// 	}
+		// 	else
+		// 	{
+		// 		m_bIsTurning = true;
+		// 		/* Pick new target angle and LOG IT */
+		// 		m_cTargetAngle.SetValue(static_cast<double>(rand()) / RAND_MAX * 2.0 * CRadians::PI.GetValue() - CRadians::PI.GetValue());
+		// 	}
+		// }
 	}
 
 	void Controller1::GoToBase()
@@ -257,15 +294,11 @@ namespace argos
 		LOG << "Sensor 0: " << getSensorProximity(0) << ", Sensor 7: " << getSensorProximity(7) << std::endl;
 		if (getSensorProximity(0) < 0.1 || getSensorProximity(7) < 0.1)
 		{
-			if (getSensorProximity(0) < getSensorProximity(7)) {
-				m_pcWheels->SetLinearVelocity(0.0, max_speed);
-			}
-			else {
-				m_pcWheels->SetLinearVelocity(max_speed, 0.0);
-			}
+			m_pcWheels->SetLinearVelocity(max_speed, -max_speed);
 		}
 		else
 		{
+			nRandomInt = m_pcRNG->Uniform(CRange<UInt32>(0, 7));
 			m_eState = RANDOM_WALK;
 		}
 	}
@@ -279,7 +312,7 @@ namespace argos
 			return;
 		}
 		for (auto &blob : *blobList) {
-			if (blob->Color == CColor::BLUE && blob->Distance < 0.15) {
+			if (blob->Color == CColor::BLUE && blob->Distance < 0.1) {
 				CRadians angle = blob->Angle.SignedNormalize();
 				if (angle.GetValue() > 0 && angle.GetValue() < CRadians::PI_OVER_FOUR.GetValue()) {
 					m_pcWheels->SetLinearVelocity(max_speed, 0.0);
@@ -301,7 +334,7 @@ namespace argos
 			m_eState = GO_TO_BASE;
 			return;
 		}
-		if (getSensorProximity(0) < 0.1 || getSensorProximity(7) < 0.1)
+		if (getSensorProximity(0) < 0.05 || getSensorProximity(7) < 0.05)
 		{
 			LOG << "Obstacle detected during collection, switching to AVOID_OBSTACLE state." << std::endl;
 			m_eState = AVOID_OBSTACLE;
@@ -316,7 +349,7 @@ namespace argos
 		CCI_ColoredBlobOmnidirectionalCameraSensor::SBlob *target_blob = nullptr;
 		Real best_distance = std::numeric_limits<Real>::max();
 		for (auto &blob : *blobList) {
-			if (blob->Color == CColor::BLUE && blob->Distance < 0.15
+			if (blob->Color == CColor::BLUE && blob->Distance < 0.1
 			&& Abs(blob->Angle.SignedNormalize().GetValue()) < CRadians::PI_OVER_FOUR.GetValue())
 			{
 				LOG << "Friendly detected during collection, switching to AVOID_FRIENDLY state." << std::endl;
